@@ -1,13 +1,12 @@
-import neat
 import random
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import math
 
 
 total_kcovered_points = 0
 total_covered_points = 0
+
 
 # sensor class
 class Sensor:
@@ -129,14 +128,12 @@ def eval_genomes(initial_sol, k):
     best_fitness = float('-inf')
     num_generations = 300
 
-
     best_scenario = initial_sol
-
 
     # itereate through all solutions 
     for gen in range(num_generations):
 
-        for genome in range(27):
+        for genome in range(10*math.ceil((math.log(len(best_scenario.sensor_list))))):
             # reset coverage scores
             total_kcovered_points = 0
             total_covered_points = 0
@@ -167,7 +164,6 @@ def eval_genomes(initial_sol, k):
                 best_fitness = genome_fitness
                 best_scenario = environment
     
-
         # reset grid for next round
         best_scenario.grid = np.zeros((best_scenario.height, best_scenario.width))
 
@@ -182,16 +178,11 @@ def calculate_fitness(sensors, environment):
     global total_covered_points
     global total_kcovered_points
 
-
     active_sensors = 0
     inactive_sensors = 0
-
-    
     connectivity_score = calculate_connectivity_score(sensors, sensors[0].com_range)
-
     k_coverage_rate = total_kcovered_points / (environment.height * environment.width)
     coverage_rate = total_covered_points / (environment.height * environment.width)
-
 
     for sensor in sensors:
         if not sensor.active:
@@ -224,7 +215,6 @@ def main():
     global total_kcovered_points
 
     num_generations = 300
-
     k = 2
     scenario_dimensions = (50, 50)
     sensor_positions = []
