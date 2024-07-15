@@ -41,12 +41,14 @@ class Environment:
         self.height = height
         self.grid = np.zeros((height, width))
         self.sensor_list = []
+        self.active_sensor_count = 0
 
 
     # adds sensor to environment
     def add_sensor(self, sensor, k):
         global total_covered_points
         global total_kcovered_points
+        self.active_sensor_count += 1
 
         # increment the value of the grid cells within a sensors sensing range
         for i in range(int(max(0, sensor.y - sensor.sensing_range)), int(min(self.height, sensor.y + sensor.sensing_range))):
@@ -178,19 +180,12 @@ def calculate_fitness(sensors, environment):
     global total_covered_points
     global total_kcovered_points
 
-    active_sensors = 0
-    inactive_sensors = 0
     connectivity_score = calculate_connectivity_score(sensors, sensors[0].com_range)
     k_coverage_rate = total_kcovered_points / (environment.height * environment.width)
     coverage_rate = total_covered_points / (environment.height * environment.width)
 
-    for sensor in sensors:
-        if not sensor.active:
-            inactive_sensors += 1
-        else:
-            active_sensors +=1
     
-    inactivity = inactive_sensors / len(sensors)
+    inactivity = (len(sensors) - environment.active_sensor_count) / len(sensors)
 
     if connectivity_score == 1.0:
         connectivity_score *= 100
@@ -206,7 +201,7 @@ def calculate_fitness(sensors, environment):
         inactivity * 1
     )
 
-    print(connectivity_score, k_coverage_rate, coverage_rate, active_sensors, fitness_score)
+    print(connectivity_score, k_coverage_rate, coverage_rate, environment.active_sensor_count, fitness_score)
     return fitness_score
 
 
