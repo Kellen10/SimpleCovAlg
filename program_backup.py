@@ -131,9 +131,15 @@ def eval_genomes(initial_sol, k):
     num_generations = 300
 
     best_scenario = initial_sol
+    mutation_decline = 0
 
     # itereate through all solutions 
     for gen in range(num_generations):
+
+        # find mutaiton decline factor
+        if gen != 0 and gen % 10 == 0 :
+                if mutation_decline < round(0.03 * len(initial_sol.sensor_list)) - 1:
+                    mutation_decline += 1
 
         for genome in range(10*math.ceil((math.log(len(best_scenario.sensor_list))))):
             # reset coverage scores
@@ -141,7 +147,7 @@ def eval_genomes(initial_sol, k):
             total_covered_points = 0
             
             print(genome)
-            # copy the universal best solution to an environment for the neural network
+            # copy the universal best solution to an environment
             environment = Environment(best_scenario.height, best_scenario.width)
             for sensor in best_scenario.sensor_list:
                 new_sensor = Sensor(sensor.x, sensor.y, sensor.sensing_range, sensor.com_range)
@@ -149,17 +155,23 @@ def eval_genomes(initial_sol, k):
                 environment.sensor_list.append(new_sensor)
 
             # mutate
-            random_sensors = [random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1)]
-            for sensor in random_sensors:
-                mutated_sensor = environment.sensor_list[sensor]
+            for s in range(round(0.03 * len(initial_sol.sensor_list)) - mutation_decline):
+                random_sensor = random.randint(0, len(best_scenario.sensor_list)-1)
+                mutated_sensor = environment.sensor_list[random_sensor]
                 mutated_sensor.active = not mutated_sensor.active
+
+            #     mutated_sensor.active = not mutated_sensor.active
+            #random_sensors = [random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1)]
+            # for sensor in random_sensors:
+            #     mutated_sensor = environment.sensor_list[sensor]
+            #     mutated_sensor.active = not mutated_sensor.active
             
             # do changes to current environment
             for sensor in environment.sensor_list:
                 if sensor.active:
                     environment.add_sensor(sensor, k)
 
-            # compare fitness of current to best current
+            # compare fitness of current to best
             genome_fitness = calculate_fitness(environment.sensor_list, environment)
 
             if genome_fitness > best_fitness:
@@ -172,7 +184,7 @@ def eval_genomes(initial_sol, k):
         for sensor in best_scenario.sensor_list:
             if sensor.active:
                 print(sensor.x, sensor.y)
-
+    print(best_scenario.active_sensor_count)
 
 # caclulates fitness of scenarios after 
 # neural network made changes to them
@@ -184,7 +196,6 @@ def calculate_fitness(sensors, environment):
     k_coverage_rate = total_kcovered_points / (environment.height * environment.width)
     coverage_rate = total_covered_points / (environment.height * environment.width)
 
-    
     inactivity = (len(sensors) - environment.active_sensor_count) / len(sensors)
 
     if connectivity_score == 1.0:
@@ -210,8 +221,12 @@ def main():
     global total_kcovered_points
 
     num_generations = 300
-    k = 2
-    scenario_dimensions = (50, 50)
+    k = 4
+    num_sensors = 500
+    sensing_range = 20
+    com_range = 40          
+    scenario_dimensions = (150, 150)
+
     sensor_positions = []
     initalized_fitness = 0
 
@@ -221,7 +236,7 @@ def main():
         total_covered_points = 0
         total_kcovered_points = 0
 
-        for _ in range(100):
+        for _ in range(num_sensors):
             x = random.randint(0, initialized_environment.width)
             y = random.randint(0, initialized_environment.height)
 
@@ -230,16 +245,12 @@ def main():
                     x = random.randint(0, initialized_environment.width)
                     y = random.randint(0, initialized_environment.height)
                 sensor_positions.append((x,y))
-                sensing_range = 10
-                com_range = 20
                 new_sensor = Sensor(x, y, sensing_range, com_range)
                 initialized_environment.add_sensor(new_sensor, k)
                 initialized_environment.sensor_list.append(new_sensor)
 
             else:
                 sensor_positions.append((x,y))
-                sensing_range = 10
-                com_range = 20
                 new_sensor = Sensor(x, y, sensing_range, com_range)
                 initialized_environment.add_sensor(new_sensor, k)
                 initialized_environment.sensor_list.append(new_sensor)
@@ -247,6 +258,6 @@ def main():
         initalized_fitness = calculate_fitness(initialized_environment.sensor_list, initialized_environment)
 
 
-    eval_genomes(initialized_environment, 2)
+    eval_genomes(initialized_environment, k)
 
 main()
