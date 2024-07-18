@@ -127,26 +127,33 @@ def eval_genomes(initial_sol, k):
     global total_covered_points
     global total_kcovered_points
 
-    best_fitness = float('-inf')
+    best_fitness = calculate_fitness(initial_sol.sensor_list, initial_sol)
     num_generations = 300
 
     best_scenario = initial_sol
-    mutation_decline = 0
+    mutationRepeatLimit = 5
+    gen_count = 0
 
+    mutation_rate = 0.05
+    
     # itereate through all solutions 
     for gen in range(num_generations):
-
-        # find mutaiton decline factor
-        if gen != 0 and gen % 10 == 0 :
-                if mutation_decline < round(0.03 * len(initial_sol.sensor_list)) - 1:
-                    mutation_decline += 1
+        gen_count += 1
+        
+        print(("mutation_rate", mutation_rate))
+        
+        if gen_count % mutationRepeatLimit == 0:
+            print(("mutation_rate", mutation_rate))
+            if mutation_rate == 0.01:
+                print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
+                return best_scenario
+            
+            mutation_rate = (math.ceil((mutation_rate - 0.01) * 100))/100
 
         for genome in range(10*math.ceil((math.log(len(best_scenario.sensor_list))))):
-            # reset coverage scores
             total_kcovered_points = 0
             total_covered_points = 0
-            
-            print(genome)
+        
             # copy the universal best solution to an environment
             environment = Environment(best_scenario.height, best_scenario.width)
             for sensor in best_scenario.sensor_list:
@@ -155,16 +162,10 @@ def eval_genomes(initial_sol, k):
                 environment.sensor_list.append(new_sensor)
 
             # mutate
-            for s in range(round(0.03 * len(initial_sol.sensor_list)) - mutation_decline):
+            for s in range(math.floor(len(best_scenario.sensor_list) * mutation_rate)):
                 random_sensor = random.randint(0, len(best_scenario.sensor_list)-1)
                 mutated_sensor = environment.sensor_list[random_sensor]
                 mutated_sensor.active = not mutated_sensor.active
-
-            #     mutated_sensor.active = not mutated_sensor.active
-            #random_sensors = [random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1), random.randint(0, len(best_scenario.sensor_list)-1)]
-            # for sensor in random_sensors:
-            #     mutated_sensor = environment.sensor_list[sensor]
-            #     mutated_sensor.active = not mutated_sensor.active
             
             # do changes to current environment
             for sensor in environment.sensor_list:
@@ -177,14 +178,16 @@ def eval_genomes(initial_sol, k):
             if genome_fitness > best_fitness:
                 best_fitness = genome_fitness
                 best_scenario = environment
+                repeatCount = 0
     
         # reset grid for next round
         best_scenario.grid = np.zeros((best_scenario.height, best_scenario.width))
 
         for sensor in best_scenario.sensor_list:
             if sensor.active:
-                print(sensor.x, sensor.y)
-    print(best_scenario.active_sensor_count)
+                print((sensor.x, sensor.y))
+                
+    # print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
 
 # caclulates fitness of scenarios after 
 # neural network made changes to them
@@ -207,8 +210,8 @@ def calculate_fitness(sensors, environment):
 
     fitness_score = (
         connectivity_score * 0.33 +
-        k_coverage_rate * 0.35 +
-        coverage_rate * 0.31 +
+        k_coverage_rate * 0.39 +
+        coverage_rate * 0.27 +
         inactivity * 1
     )
 
@@ -220,12 +223,11 @@ def main():
     global total_covered_points
     global total_kcovered_points
 
-    num_generations = 300
-    k = 4
-    num_sensors = 500
-    sensing_range = 20
-    com_range = 40          
-    scenario_dimensions = (150, 150)
+    k = 3
+    num_sensors = 300
+    sensing_range = 15
+    com_range = 30     
+    scenario_dimensions = (100, 100)
 
     sensor_positions = []
     initalized_fitness = 0
