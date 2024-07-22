@@ -42,6 +42,7 @@ class Environment:
         self.grid = np.zeros((height, width))
         self.sensor_list = []
         self.active_sensor_count = 0
+        self.active_sensor_list = []
 
 
     # adds sensor to environment
@@ -49,6 +50,7 @@ class Environment:
         global total_covered_points
         global total_kcovered_points
         self.active_sensor_count += 1
+        self.active_sensor_list.append(sensor)
 
         # increment the value of the grid cells within a sensors sensing range
         for i in range(int(max(0, sensor.y - sensor.sensing_range)), int(min(self.height, sensor.y + sensor.sensing_range))):
@@ -140,10 +142,10 @@ def eval_genomes(initial_sol, k):
     for gen in range(num_generations):
         gen_count += 1
         
-        print(("mutation_rate", mutation_rate))
+        #print(("mutation_rate", mutation_rate))
         
         if gen_count % mutationRepeatLimit == 0:
-            print(("mutation_rate", mutation_rate))
+            #print(("mutation_rate", mutation_rate))
             if mutation_rate == 0.01:
                 print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
                 return best_scenario
@@ -160,13 +162,13 @@ def eval_genomes(initial_sol, k):
                 new_sensor = Sensor(sensor.x, sensor.y, sensor.sensing_range, sensor.com_range)
                 new_sensor.active = sensor.active
                 environment.sensor_list.append(new_sensor)
+                if new_sensor.active:
+                    environment.active_sensor_list.append(new_sensor)
+
 
             # mutate
-            for s in range(math.floor(len(best_scenario.sensor_list) * mutation_rate)):
-                random_sensor = random.randint(0, len(best_scenario.sensor_list)-1)
-                mutated_sensor = environment.sensor_list[random_sensor]
-                mutated_sensor.active = not mutated_sensor.active
-            
+            mutate_sensors(environment, mutation_rate)
+
             # do changes to current environment
             for sensor in environment.sensor_list:
                 if sensor.active:
@@ -183,11 +185,63 @@ def eval_genomes(initial_sol, k):
         # reset grid for next round
         best_scenario.grid = np.zeros((best_scenario.height, best_scenario.width))
 
-        for sensor in best_scenario.sensor_list:
-            if sensor.active:
-                print((sensor.x, sensor.y))
+        # for sensor in best_scenario.sensor_list:
+        #     if sensor.active:f
+        #         print((sensor.x, sensor.y))
                 
-    # print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
+    print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
+
+
+def mutate_sensors(environment, mutation_rate):
+
+    #keep track of number turned on
+    num_turned_on = 0
+
+    active_limit = False
+    # repeat for set amount of times
+    number_mutations = math.ceil(len(environment.sensor_list) * mutation_rate)
+    
+    for s in range(number_mutations):
+
+        # if even number
+        if number_mutations % 2 == 0:
+            
+            # if not at active limit
+            if num_turned_on < number_mutations/2 - 1:
+                random_sensor = random.randint(0, len(environment.sensor_list)-1)
+                mutated_sensor = environment.sensor_list[random_sensor]
+
+            else:
+                active_limit = True
+                random_sensor = random.randint(0, len(environment.active_sensor_list)-1)
+                mutated_sensor = environment.active_sensor_list[random_sensor]
+
+        # of odd number
+        else:
+            if num_turned_on < math.floor(number_mutations/2):
+                random_sensor = random.randint(0, len(environment.sensor_list)-1)
+                mutated_sensor = environment.sensor_list[random_sensor]
+
+            else:
+                active_limit = True
+                random_sensor = random.randint(0, len(environment.active_sensor_list)-1)
+                mutated_sensor = environment.active_sensor_list[random_sensor]
+
+        if active_limit:
+            mutated_sensor.active = not mutated_sensor.active
+            environment.active_sensor_list.pop(random_sensor)
+
+        else:
+            if not mutated_sensor.active:
+                num_turned_on +=1
+                environment.active_sensor_list.append(mutated_sensor)
+            else:
+                environment.active_sensor_list.pop(environment.active_sensor_list.index(mutated_sensor))
+        
+            environment.sensor_list[random_sensor].active = not environment.sensor_list[random_sensor].active
+
+    return environment.sensor_list
+
 
 # caclulates fitness of scenarios after 
 # neural network made changes to them
@@ -224,10 +278,10 @@ def main():
     global total_kcovered_points
 
     k = 3
-    num_sensors = 300
-    sensing_range = 15
-    com_range = 30     
-    scenario_dimensions = (100, 100)
+    num_sensors = 100
+    sensing_range = 10
+    com_range = 20
+    scenario_dimensions = (50, 50)
 
     sensor_positions = []
     initalized_fitness = 0
@@ -259,7 +313,26 @@ def main():
 
         initalized_fitness = calculate_fitness(initialized_environment.sensor_list, initialized_environment)
 
+    # for sensor in initialized_environment.sensor_list:
+    #     active = random.randint(0,1)
+    #     if active == 0:
+    #         sensor.active = False
+    #     else:
+    #         sensor.active = True
+    # #eval_genomes(initialized_environment, k)
+    return eval_genomes(initialized_environment, k).active_sensor_count
 
-    eval_genomes(initialized_environment, k)
+active_list = []
 
-main()
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+active_list.append(main())
+
+print(active_list)
