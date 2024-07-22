@@ -129,30 +129,18 @@ def eval_genomes(initial_sol, k):
     global total_covered_points
     global total_kcovered_points
 
-    best_fitness = calculate_fitness(initial_sol.sensor_list, initial_sol)
-    num_generations = 300
-
     best_scenario = initial_sol
-    mutationRepeatLimit = 5
-    gen_count = 0
+    best_fitness = calculate_fitness(initial_sol.sensor_list, initial_sol)
 
+    mutationRepeatLimit = 1
     mutation_rate = 0.05
+    gen_count = 0
     
-    # itereate through all solutions 
-    for gen in range(num_generations):
+    # itereate through all solutions
+    while mutation_rate > 0: 
         gen_count += 1
-        
-        #print(("mutation_rate", mutation_rate))
-        
-        if gen_count % mutationRepeatLimit == 0:
-            #print(("mutation_rate", mutation_rate))
-            if mutation_rate == 0.01:
-                print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
-                return best_scenario
-            
-            mutation_rate = (math.ceil((mutation_rate - 0.01) * 100))/100
 
-        for genome in range(10*math.ceil((math.log(len(best_scenario.sensor_list))))):
+        for solution in range(10*math.ceil((math.log(len(best_scenario.sensor_list))))):
             total_kcovered_points = 0
             total_covered_points = 0
         
@@ -180,71 +168,54 @@ def eval_genomes(initial_sol, k):
             if genome_fitness > best_fitness:
                 best_fitness = genome_fitness
                 best_scenario = environment
-                repeatCount = 0
-    
+
+        if gen_count % mutationRepeatLimit == 0:
+            mutation_rate = (math.ceil((mutation_rate - 0.01) * 100))/100
+
         # reset grid for next round
         best_scenario.grid = np.zeros((best_scenario.height, best_scenario.width))
 
-        # for sensor in best_scenario.sensor_list:
-        #     if sensor.active:f
-        #         print((sensor.x, sensor.y))
-                
     print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
+    return best_scenario
 
 
 def mutate_sensors(environment, mutation_rate):
-
-    #keep track of number turned on
-    num_turned_on = 0
-
-    active_limit = False
-    # repeat for set amount of times
+    # number of sensors that will be mutated
     number_mutations = math.ceil(len(environment.sensor_list) * mutation_rate)
+    # threshold of on sensors
+    threshold = number_mutations / 2 - 1 if number_mutations % 2 == 0 else math.floor(number_mutations / 2)
     
-    for s in range(number_mutations):
-
-        # if even number
-        if number_mutations % 2 == 0:
-            
-            # if not at active limit
-            if num_turned_on < number_mutations/2 - 1:
-                random_sensor = random.randint(0, len(environment.sensor_list)-1)
-                mutated_sensor = environment.sensor_list[random_sensor]
-
-            else:
-                active_limit = True
-                random_sensor = random.randint(0, len(environment.active_sensor_list)-1)
-                mutated_sensor = environment.active_sensor_list[random_sensor]
-
-        # of odd number
+    random.shuffle(environment.sensor_list)
+    
+    num_turned_on = 0
+    
+    for selected_sensor in range(number_mutations):
+        if num_turned_on < threshold:
+            sensor = environment.sensor_list[selected_sensor]
         else:
-            if num_turned_on < math.floor(number_mutations/2):
-                random_sensor = random.randint(0, len(environment.sensor_list)-1)
-                mutated_sensor = environment.sensor_list[random_sensor]
-
+            # select sensor from active list if at threshold
+            if environment.active_sensor_list:
+                sensor = environment.active_sensor_list[random.randint(0, len(environment.active_sensor_list) - 1)]
             else:
-                active_limit = True
-                random_sensor = random.randint(0, len(environment.active_sensor_list)-1)
-                mutated_sensor = environment.active_sensor_list[random_sensor]
+                break
 
-        if active_limit:
-            mutated_sensor.active = not mutated_sensor.active
-            environment.active_sensor_list.pop(random_sensor)
-
-        else:
-            if not mutated_sensor.active:
-                num_turned_on +=1
-                environment.active_sensor_list.append(mutated_sensor)
-            else:
-                environment.active_sensor_list.pop(environment.active_sensor_list.index(mutated_sensor))
+        # mutate
+        sensor.active = not sensor.active
         
-            environment.sensor_list[random_sensor].active = not environment.sensor_list[random_sensor].active
+        # if sensor turned ON
+        if sensor.active:
+            environment.active_sensor_list.append(sensor)
+            num_turned_on += 1
+
+        # if sensor turned OFF
+        else:
+            if sensor in environment.active_sensor_list:
+                environment.active_sensor_list.remove(sensor)
 
     return environment.sensor_list
 
 
 # caclulates fitness of scenarios after 
-# neural network made changes to them
 def calculate_fitness(sensors, environment):
     global total_covered_points
     global total_kcovered_points
@@ -273,15 +244,15 @@ def calculate_fitness(sensors, environment):
     return fitness_score
 
 
-def main():
+def main(k, num_sensors, sensing_range, com_range, scenario_dimensions):
     global total_covered_points
     global total_kcovered_points
 
-    k = 3
-    num_sensors = 100
-    sensing_range = 10
-    com_range = 20
-    scenario_dimensions = (50, 50)
+    # k = 4
+    # num_sensors = 100
+    # sensing_range = 10
+    # com_range = 20
+    # scenario_dimensions = (50, 50)
 
     sensor_positions = []
     initalized_fitness = 0
@@ -313,26 +284,69 @@ def main():
 
         initalized_fitness = calculate_fitness(initialized_environment.sensor_list, initialized_environment)
 
-    # for sensor in initialized_environment.sensor_list:
-    #     active = random.randint(0,1)
-    #     if active == 0:
-    #         sensor.active = False
-    #     else:
-    #         sensor.active = True
-    # #eval_genomes(initialized_environment, k)
     return eval_genomes(initialized_environment, k).active_sensor_count
 
-active_list = []
+# test1_2 = (str(main(2, 100, 10, 20, (50,50))) + "+" + str(main(2, 100, 10, 20, (50,50)))
+# + "+" + str(main(2, 100, 10, 20, (50,50))) + "+" + str(main(2, 100, 10, 20, (50,50))) 
+# + "+" + str(main(2, 100, 10, 20, (50,50))) + "+" + str(main(2, 100, 10, 20, (50,50))) 
+# + "+" + str(main(2, 100, 10, 20, (50,50))) + "+" + str(main(2, 100, 10, 20, (50,50))) 
+# + "+" + str(main(2, 100, 10, 20, (50,50))) + "+" + str(main(2, 100, 10, 20, (50,50))))
 
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
-active_list.append(main())
+# test1_3 = (str(main(3, 100, 10, 20, (50,50))) + "+" + str(main(3, 100, 10, 20, (50,50)))
+# + "+" + str(main(3, 100, 10, 20, (50,50))) + "+" + str(main(3, 100, 10, 20, (50,50))) 
+# + "+" + str(main(3, 100, 10, 20, (50,50))) + "+" + str(main(3, 100, 10, 20, (50,50))) 
+# + "+" + str(main(3, 100, 10, 20, (50,50))) + "+" + str(main(3, 100, 10, 20, (50,50))) 
+# + "+" + str(main(3, 100, 10, 20, (50,50))) + "+" + str(main(3, 100, 10, 20, (50,50))))
 
-print(active_list)
+# test1_4 = (str(main(4, 100, 10, 20, (50,50))) + "+" + str(main(4, 100, 10, 20, (50,50)))
+# + "+" + str(main(4, 100, 10, 20, (50,50))) + "+" + str(main(4, 100, 10, 20, (50,50))) 
+# + "+" + str(main(4, 100, 10, 20, (50,50))) + "+" + str(main(4, 100, 10, 20, (50,50))) 
+# + "+" + str(main(4, 100, 10, 20, (50,50))) + "+" + str(main(4, 100, 10, 20, (50,50))) 
+# + "+" + str(main(4, 100, 10, 20, (50,50))) + "+" + str(main(4, 100, 10, 20, (50,50))))
+
+# test2_2 = (str(main(2, 300, 15, 30, (100,100))) + "+" + str(main(2, 300, 15, 30, (100,100)))
+# + "+" + str(main(2, 300, 15, 30, (100,100))) + "+" + str(main(2, 300, 15, 30, (100,100))) 
+# + "+" + str(main(2, 300, 15, 30, (100,100))) + "+" + str(main(2, 300, 15, 30, (100,100))) 
+# + "+" + str(main(2, 300, 15, 30, (100,100))) + "+" + str(main(2, 300, 15, 30, (100,100))) 
+# + "+" + str(main(2, 300, 15, 30, (100,100))) + "+" + str(main(2, 300, 15, 30, (100,100))))
+
+# test2_3 = (str(main(3, 300, 15, 30, (100,100))) + "+" + str(main(3, 300, 15, 30, (100,100)))
+# + "+" + str(main(3, 300, 15, 30, (100,100))) + "+" + str(main(3, 300, 15, 30, (100,100))) 
+# + "+" + str(main(3, 300, 15, 30, (100,100))) + "+" + str(main(3, 300, 15, 30, (100,100))) 
+# + "+" + str(main(3, 300, 15, 30, (100,100))) + "+" + str(main(3, 300, 15, 30, (100,100))) 
+# + "+" + str(main(3, 300, 15, 30, (100,100))) + "+" + str(main(3, 300, 15, 30, (100,100))))
+
+# test2_4 = (str(main(4, 300, 15, 30, (100,100))) + "+" + str(main(4, 300, 15, 30, (100,100)))
+# + "+" + str(main(4, 300, 15, 30, (100,100))) + "+" + str(main(4, 300, 15, 30, (100,100))) 
+# + "+" + str(main(4, 300, 15, 30, (100,100))) + "+" + str(main(4, 300, 15, 30, (100,100))) 
+# + "+" + str(main(4, 300, 15, 30, (100,100))) + "+" + str(main(4, 300, 15, 30, (100,100))) 
+# + "+" + str(main(4, 300, 15, 30, (100,100))) + "+" + str(main(4, 300, 15, 30, (100,100))))
+
+# test3_2 = (str(main(2, 500, 20, 40, (150,150))) + "+" + str(main(2, 500, 20, 40, (150,150)))
+# + "+" + str(main(2, 500, 20, 40, (150,150))) + "+" + str(main(2, 500, 20, 40, (150,150))) 
+# + "+" + str(main(2, 500, 20, 40, (150,150))) + "+" + str(main(2, 500, 20, 40, (150,150))) 
+# + "+" + str(main(2, 500, 20, 40, (150,150))) + "+" + str(main(2, 500, 20, 40, (150,150))) 
+# + "+" + str(main(2, 500, 20, 40, (150,150))) + "+" + str(main(2, 500, 20, 40, (150,150))))
+
+# test3_3 = (str(main(3, 500, 20, 40, (150,150))) + "+" + str(main(3, 500, 20, 40, (150,150)))
+# + "+" + str(main(3, 500, 20, 40, (150,150))) + "+" + str(main(3, 500, 20, 40, (150,150))) 
+# + "+" + str(main(3, 500, 20, 40, (150,150))) + "+" + str(main(3, 500, 20, 40, (150,150))) 
+# + "+" + str(main(3, 500, 20, 40, (150,150))) + "+" + str(main(3, 500, 20, 40, (150,150))) 
+# + "+" + str(main(3, 500, 20, 40, (150,150))) + "+" + str(main(3, 500, 20, 40, (150,150))))
+
+# test3_4 = (str(main(4, 500, 20, 40, (150,150))) + "+" + str(main(4, 500, 20, 40, (150,150)))
+# + "+" + str(main(4, 500, 20, 40, (150,150))) + "+" + str(main(4, 500, 20, 40, (150,150))) 
+# + "+" + str(main(4, 500, 20, 40, (150,150))) + "+" + str(main(4, 500, 20, 40, (150,150))) 
+# + "+" + str(main(4, 500, 20, 40, (150,150))) + "+" + str(main(4, 500, 20, 40, (150,150))) 
+# + "+" + str(main(4, 500, 20, 40, (150,150))) + "+" + str(main(4, 500, 20, 40, (150,150))))
+
+# test4_20 = "+".join(str(main(3, 300, 20, 40, (100, 100))) for _ in range(10))
+# test4_30 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
+# test4_40 = "+".join(str(main(3, 300, 40, 80, (100, 100))) for _ in range(10))
+# test4_50 = "+".join(str(main(3, 300, 50, 100, (100, 100))) for _ in range(10))
+# test4_60 = "+".join(str(main(3, 300, 60, 120, (100, 100))) for _ in range(10))
+
+test1_2 = "+".join(str(main(2, 100, 10, 20, (50, 50))) for _ in range(10))
+
+
+print(test1_2)
