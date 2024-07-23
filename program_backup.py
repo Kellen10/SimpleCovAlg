@@ -211,7 +211,6 @@ def mutate_sensors(environment, mutation_rate):
         else:
             if sensor in environment.active_sensor_list:
                 environment.active_sensor_list.remove(sensor)
-
     return environment.sensor_list
 
 
@@ -287,39 +286,75 @@ def main(k, num_sensors, sensing_range, com_range, scenario_dimensions):
     return eval_genomes(initialized_environment, k).active_sensor_count
 
 
-test1_2 = "+".join(str(main(2, 100, 10, 20, (50, 50))) for _ in range(10))
-test1_3 = "+".join(str(main(3, 100, 10, 20, (50, 50))) for _ in range(10))
-test1_4 = "+".join(str(main(4, 100, 10, 20, (50, 50))) for _ in range(10))
+# test1_2 = "+".join(str(main(2, 100, 10, 20, (50, 50))) for _ in range(10))
+# test1_3 = "+".join(str(main(3, 100, 10, 20, (50, 50))) for _ in range(10))
+# test1_4 = "+".join(str(main(4, 100, 10, 20, (50, 50))) for _ in range(10))
 
-test2_2 = "+".join(str(main(2, 300, 15, 30, (100, 100))) for _ in range(10))
-test2_3 = "+".join(str(main(3, 300, 15, 30, (100, 100))) for _ in range(10))
-test2_4 = "+".join(str(main(4, 300, 15, 30, (100, 100))) for _ in range(10))
+# test2_2 = "+".join(str(main(2, 300, 15, 30, (100, 100))) for _ in range(10))
+# test2_3 = "+".join(str(main(3, 300, 15, 30, (100, 100))) for _ in range(10))
+# test2_4 = "+".join(str(main(4, 300, 15, 30, (100, 100))) for _ in range(10))
 
-test3_2 = "+".join(str(main(2, 500, 20, 40, (150, 150))) for _ in range(10))
-test3_3 = "+".join(str(main(3, 500, 20, 40, (150, 150))) for _ in range(10))
-test3_4 = "+".join(str(main(4, 500, 20, 40, (150, 150))) for _ in range(10))
+# test3_2 = "+".join(str(main(2, 500, 20, 40, (150, 150))) for _ in range(10))
+# test3_3 = "+".join(str(main(3, 500, 20, 40, (150, 150))) for _ in range(10))
+# test3_4 = "+".join(str(main(4, 500, 20, 40, (150, 150))) for _ in range(10))
 
-test4_20 = "+".join(str(main(3, 300, 20, 40, (100, 100))) for _ in range(10))
-test4_30 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
-test4_40 = "+".join(str(main(3, 300, 40, 80, (100, 100))) for _ in range(10))
-test4_50 = "+".join(str(main(3, 300, 50, 100, (100, 100))) for _ in range(10))
-test4_60 = "+".join(str(main(3, 300, 60, 120, (100, 100))) for _ in range(10))
+# test4_20 = "+".join(str(main(3, 300, 20, 40, (100, 100))) for _ in range(10))
+# test4_30 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
+# test4_40 = "+".join(str(main(3, 300, 40, 80, (100, 100))) for _ in range(10))
+# test4_50 = "+".join(str(main(3, 300, 50, 100, (100, 100))) for _ in range(10))
+# test4_60 = "+".join(str(main(3, 300, 60, 120, (100, 100))) for _ in range(10))
 
-print(f"test1_2:{test1_2}")
-print(f"test1_3:{test1_3}")
-print(f"test1_4:{test1_4}")
+test5_1 = "+".join(str(main(3, 100, 15, 10, (50, 50))) for _ in range(10))
+test5_2 = "+".join(str(main(3, 100, 15, 15, (50, 50))) for _ in range(10))
+test5_3 = "+".join(str(main(3, 100, 15, 20, (50, 50))) for _ in range(10))
+test5_4 = "+".join(str(main(3, 100, 15, 25, (50, 50))) for _ in range(10))
+test5_5 = "+".join(str(main(3, 100, 15, 30, (50, 50))) for _ in range(10))
 
-print(f"test2_2:{test2_2}")
-print(f"test2_3:{test2_3}")
-print(f"test2_4:{test2_4}")
+test6_1 = "+".join(str(main(3, 300, 30, 20, (100, 100))) for _ in range(10))
+test6_2 = "+".join(str(main(3, 300, 30, 30, (100, 100))) for _ in range(10))
+test6_3 = "+".join(str(main(3, 300, 30, 40, (100, 100))) for _ in range(10))
+test6_4 = "+".join(str(main(3, 300, 30, 50, (100, 100))) for _ in range(10))
+test6_5 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
 
-print(f"test3_2:{test3_2}")
-print(f"test3_3:{test3_3}")
-print(f"test3_4:{test3_4}")
+test7_1 = "+".join(str(main(3, 500, 45, 30, (150, 150))) for _ in range(10))
+test7_2 = "+".join(str(main(3, 500, 45, 45, (150, 150))) for _ in range(10))
+test7_3 = "+".join(str(main(3, 500, 45, 60, (150, 150))) for _ in range(10))
+test7_4 = "+".join(str(main(3, 500, 45, 75, (150, 150))) for _ in range(10))
+test7_5 = "+".join(str(main(3, 500, 45, 90, (150, 150))) for _ in range(10))
 
-print(f"test4_20:{test4_20}")
-print(f"test4_30:{test4_30}")
-print(f"test4_40:{test4_40}")
-print(f"test4_50:{test4_50}")
-print(f"test4_60:{test4_60}")
+# print(f"test1_2:{test1_2}")
+# print(f"test1_3:{test1_3}")
+# print(f"test1_4:{test1_4}")
+
+# print(f"test2_2:{test2_2}")
+# print(f"test2_3:{test2_3}")
+# print(f"test2_4:{test2_4}")
+
+# print(f"test3_2:{test3_2}")
+# print(f"test3_3:{test3_3}")
+# print(f"test3_4:{test3_4}")
+
+# print(f"test4_20:{test4_20}")
+# print(f"test4_30:{test4_30}")
+# print(f"test4_40:{test4_40}")
+# print(f"test4_50:{test4_50}")
+# print(f"test4_60:{test4_60}")
+
+print(f"test5_1: {test5_1}")
+print(f"test5_2: {test5_2}")
+print(f"test5_3: {test5_3}")
+print(f"test5_4: {test5_4}")
+print(f"test5_5: {test5_5}")
+
+print(f"test6_1: {test6_1}")
+print(f"test6_2: {test6_2}")
+print(f"test6_3: {test6_3}")
+print(f"test6_4: {test6_4}")
+print(f"test6_5: {test6_5}")
+
+print(f"test7_1: {test7_1}")
+print(f"test7_2: {test7_2}")
+print(f"test7_3: {test7_3}")
+print(f"test7_4: {test7_4}")
+print(f"test7_5: {test7_5}")
 
