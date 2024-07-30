@@ -56,20 +56,11 @@ class Environment:
         for i in range(int(max(0, sensor.y - sensor.sensing_range)), int(min(self.height, sensor.y + sensor.sensing_range))):
             for j in range(int(max(0, sensor.x - sensor.sensing_range)), int(min(self.width, sensor.x + sensor.sensing_range))):
                 if sensor.is_point_covered(j, i):
-
-                    # if point is now k-covered
-                    if self.grid[i][j] == k-1:
-                        total_kcovered_points += 1
+                    # if point is k-covered don't add anything, if it is anything else add to the point
+                    if self.grid[i][j] != k:
                         self.grid[i][j] += 1
-                    
-                    # if point is now 1 covered
-                    elif self.grid[i][j] == 0:
+                        # increment total point coverage
                         total_covered_points += 1
-                        self.grid[i][j] += 1
-                    
-                    # if point is k-covered don't add anything, but if its anything else add to the point
-                    elif self.grid[i][j] != k:
-                        self.grid[i][j] += 1
                         
 
 
@@ -130,7 +121,7 @@ def eval_genomes(initial_sol, k):
     global total_kcovered_points
 
     best_scenario = initial_sol
-    best_fitness = calculate_fitness(initial_sol.sensor_list, initial_sol)
+    best_fitness = calculate_fitness(initial_sol.sensor_list, initial_sol, k)
 
     mutationRepeatLimit = 5
     mutation_rate = 0.05
@@ -163,7 +154,7 @@ def eval_genomes(initial_sol, k):
                     environment.add_sensor(sensor, k)
 
             # compare fitness of current to best
-            genome_fitness = calculate_fitness(environment.sensor_list, environment)
+            genome_fitness = calculate_fitness(environment.sensor_list, environment, k)
 
             if genome_fitness > best_fitness:
                 best_fitness = genome_fitness
@@ -175,7 +166,7 @@ def eval_genomes(initial_sol, k):
         # reset grid for next round
         best_scenario.grid = np.zeros((best_scenario.height, best_scenario.width))
 
-    print("active sensors and gen count", best_scenario.active_sensor_count, gen_count)
+    print(best_scenario.active_sensor_count)
     return best_scenario
 
 
@@ -215,13 +206,12 @@ def mutate_sensors(environment, mutation_rate):
 
 
 # caclulates fitness of scenarios after 
-def calculate_fitness(sensors, environment):
+def calculate_fitness(sensors, environment, k):
     global total_covered_points
     global total_kcovered_points
 
     connectivity_score = calculate_connectivity_score(sensors, sensors[0].com_range)
-    k_coverage_rate = total_kcovered_points / (environment.height * environment.width)
-    coverage_rate = total_covered_points / (environment.height * environment.width)
+    k_coverage_rate = total_covered_points / (environment.height * environment.width * k)
 
     inactivity = (len(sensors) - environment.active_sensor_count) / len(sensors)
 
@@ -229,29 +219,20 @@ def calculate_fitness(sensors, environment):
         connectivity_score *= 100
     if k_coverage_rate == 1.0:
         k_coverage_rate *= 100
-    if coverage_rate == 1.0:
-        coverage_rate *= 100
 
     fitness_score = (
-        connectivity_score * 0.33 +
-        k_coverage_rate * 0.39 +
-        coverage_rate * 0.27 +
+        connectivity_score * 0.47 +
+        k_coverage_rate * 0.52 +
         inactivity * 1
     )
 
-    print(connectivity_score, k_coverage_rate, coverage_rate, environment.active_sensor_count, fitness_score)
+    #print(connectivity_score, k_coverage_rate, environment.active_sensor_count, fitness_score)
     return fitness_score
 
 
 def main(k, num_sensors, sensing_range, com_range, scenario_dimensions):
     global total_covered_points
     global total_kcovered_points
-
-    # k = 4
-    # num_sensors = 100
-    # sensing_range = 10
-    # com_range = 20
-    # scenario_dimensions = (50, 50)
 
     sensor_positions = []
     initalized_fitness = 0
@@ -281,64 +262,79 @@ def main(k, num_sensors, sensing_range, com_range, scenario_dimensions):
                 initialized_environment.add_sensor(new_sensor, k)
                 initialized_environment.sensor_list.append(new_sensor)
 
-        initalized_fitness = calculate_fitness(initialized_environment.sensor_list, initialized_environment)
-
+        initalized_fitness = calculate_fitness(initialized_environment.sensor_list, initialized_environment, k)
+    
     return eval_genomes(initialized_environment, k).active_sensor_count
 
 
-# test1_2 = "+".join(str(main(2, 100, 10, 20, (50, 50))) for _ in range(10))
-# test1_3 = "+".join(str(main(3, 100, 10, 20, (50, 50))) for _ in range(10))
-# test1_4 = "+".join(str(main(4, 100, 10, 20, (50, 50))) for _ in range(10))
+#gama comparison
+test1_2 = "+".join(str(main(2, 100, 10, 20, (50, 50))) for _ in range(10))
+test1_3 = "+".join(str(main(3, 100, 10, 20, (50, 50))) for _ in range(10))
+test1_4 = "+".join(str(main(4, 100, 10, 20, (50, 50))) for _ in range(10))
 
-# test2_2 = "+".join(str(main(2, 300, 15, 30, (100, 100))) for _ in range(10))
-# test2_3 = "+".join(str(main(3, 300, 15, 30, (100, 100))) for _ in range(10))
-# test2_4 = "+".join(str(main(4, 300, 15, 30, (100, 100))) for _ in range(10))
+test2_2 = "+".join(str(main(2, 300, 15, 30, (100, 100))) for _ in range(10))
+test2_3 = "+".join(str(main(3, 300, 15, 30, (100, 100))) for _ in range(10))
+test2_4 = "+".join(str(main(4, 300, 15, 30, (100, 100))) for _ in range(10))
 
-# test3_2 = "+".join(str(main(2, 500, 20, 40, (150, 150))) for _ in range(10))
-# test3_3 = "+".join(str(main(3, 500, 20, 40, (150, 150))) for _ in range(10))
-# test3_4 = "+".join(str(main(4, 500, 20, 40, (150, 150))) for _ in range(10))
+test3_2 = "+".join(str(main(2, 500, 20, 40, (150, 150))) for _ in range(10))
+test3_3 = "+".join(str(main(3, 500, 20, 40, (150, 150))) for _ in range(10))
+test3_4 = "+".join(str(main(4, 500, 20, 40, (150, 150))) for _ in range(10))
 
-# test4_20 = "+".join(str(main(3, 300, 20, 40, (100, 100))) for _ in range(10))
-# test4_30 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
-# test4_40 = "+".join(str(main(3, 300, 40, 80, (100, 100))) for _ in range(10))
-# test4_50 = "+".join(str(main(3, 300, 50, 100, (100, 100))) for _ in range(10))
-# test4_60 = "+".join(str(main(3, 300, 60, 120, (100, 100))) for _ in range(10))
+test4_20 = "+".join(str(main(3, 300, 20, 40, (100, 100))) for _ in range(10))
+test4_30 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
+test4_40 = "+".join(str(main(3, 300, 40, 80, (100, 100))) for _ in range(10))
+test4_50 = "+".join(str(main(3, 300, 50, 100, (100, 100))) for _ in range(10))
+test4_60 = "+".join(str(main(3, 300, 60, 120, (100, 100))) for _ in range(10))
 
-test5_1 = "+".join(str(main(3, 100, 15, 10, (50, 50))) for _ in range(10))
-test5_2 = "+".join(str(main(3, 100, 15, 15, (50, 50))) for _ in range(10))
-test5_3 = "+".join(str(main(3, 100, 15, 20, (50, 50))) for _ in range(10))
-test5_4 = "+".join(str(main(3, 100, 15, 25, (50, 50))) for _ in range(10))
-test5_5 = "+".join(str(main(3, 100, 15, 30, (50, 50))) for _ in range(10))
+# com range
+test5_1 = "+".join(str(main(1, 300, 15, 10, (100, 100))) for _ in range(10))
+test5_2 = "+".join(str(main(1, 300, 15, 15, (100, 100))) for _ in range(10))
+test5_3 = "+".join(str(main(1, 300, 15, 20, (100, 100))) for _ in range(10))
+test5_4 = "+".join(str(main(1, 300, 15, 25, (100, 100))) for _ in range(10))
+test5_5 = "+".join(str(main(1, 300, 15, 30, (100, 100))) for _ in range(10))
 
-test6_1 = "+".join(str(main(3, 300, 30, 20, (100, 100))) for _ in range(10))
-test6_2 = "+".join(str(main(3, 300, 30, 30, (100, 100))) for _ in range(10))
-test6_3 = "+".join(str(main(3, 300, 30, 40, (100, 100))) for _ in range(10))
-test6_4 = "+".join(str(main(3, 300, 30, 50, (100, 100))) for _ in range(10))
-test6_5 = "+".join(str(main(3, 300, 30, 60, (100, 100))) for _ in range(10))
+test6_2 = "+".join(str(main(2, 300, 15, 10, (100, 100))) for _ in range(10))
+test6_3 = "+".join(str(main(2, 300, 15, 15, (100, 100))) for _ in range(10))
+test6_4 = "+".join(str(main(2, 300, 15, 20, (100, 100))) for _ in range(10))
+test6_5 = "+".join(str(main(2, 300, 15, 25, (100, 100))) for _ in range(10))
+test6_6 = "+".join(str(main(2, 300, 15, 30, (100, 100))) for _ in range(10))
 
-test7_1 = "+".join(str(main(3, 500, 45, 30, (150, 150))) for _ in range(10))
-test7_2 = "+".join(str(main(3, 500, 45, 45, (150, 150))) for _ in range(10))
-test7_3 = "+".join(str(main(3, 500, 45, 60, (150, 150))) for _ in range(10))
-test7_4 = "+".join(str(main(3, 500, 45, 75, (150, 150))) for _ in range(10))
-test7_5 = "+".join(str(main(3, 500, 45, 90, (150, 150))) for _ in range(10))
+test7_2 = "+".join(str(main(3, 300, 15, 10, (100, 100))) for _ in range(10))
+test7_3 = "+".join(str(main(3, 300, 15, 15, (100, 100))) for _ in range(10))
+test7_4 = "+".join(str(main(3, 300, 15, 20, (100, 100))) for _ in range(10))
+test7_5 = "+".join(str(main(3, 300, 15, 25, (100, 100))) for _ in range(10))
+test7_6 = "+".join(str(main(3, 300, 15, 30, (100, 100))) for _ in range(10))
 
-# print(f"test1_2:{test1_2}")
-# print(f"test1_3:{test1_3}")
-# print(f"test1_4:{test1_4}")
+test8_2 = "+".join(str(main(4, 300, 15, 10, (100, 100))) for _ in range(10))
+test8_3 = "+".join(str(main(4, 300, 15, 15, (100, 100))) for _ in range(10))
+test8_4 = "+".join(str(main(4, 300, 15, 20, (100, 100))) for _ in range(10))
+test8_5 = "+".join(str(main(4, 300, 15, 25, (100, 100))) for _ in range(10))
+test8_6 = "+".join(str(main(4, 300, 15, 30, (100, 100))) for _ in range(10))
 
-# print(f"test2_2:{test2_2}")
-# print(f"test2_3:{test2_3}")
-# print(f"test2_4:{test2_4}")
+test9_2 = "+".join(str(main(5, 300, 15, 10, (100, 100))) for _ in range(10))
+test9_3 = "+".join(str(main(5, 300, 15, 15, (100, 100))) for _ in range(10))
+test9_4 = "+".join(str(main(5, 300, 15, 20, (100, 100))) for _ in range(10))
+test9_5 = "+".join(str(main(5, 300, 15, 25, (100, 100))) for _ in range(10))
+test9_6 = "+".join(str(main(5, 300, 15, 30, (100, 100))) for _ in range(10))
 
-# print(f"test3_2:{test3_2}")
-# print(f"test3_3:{test3_3}")
-# print(f"test3_4:{test3_4}")
 
-# print(f"test4_20:{test4_20}")
-# print(f"test4_30:{test4_30}")
-# print(f"test4_40:{test4_40}")
-# print(f"test4_50:{test4_50}")
-# print(f"test4_60:{test4_60}")
+print(f"test1_2:{test1_2}")
+print(f"test1_3:{test1_3}")
+print(f"test1_4:{test1_4}")
+
+print(f"test2_2:{test2_2}")
+print(f"test2_3:{test2_3}")
+print(f"test2_4:{test2_4}")
+
+print(f"test3_2:{test3_2}")
+print(f"test3_3:{test3_3}")
+print(f"test3_4:{test3_4}")
+
+print(f"test4_20:{test4_20}")
+print(f"test4_30:{test4_30}")
+print(f"test4_40:{test4_40}")
+print(f"test4_50:{test4_50}")
+print(f"test4_60:{test4_60}")
 
 print(f"test5_1: {test5_1}")
 print(f"test5_2: {test5_2}")
@@ -346,15 +342,28 @@ print(f"test5_3: {test5_3}")
 print(f"test5_4: {test5_4}")
 print(f"test5_5: {test5_5}")
 
-print(f"test6_1: {test6_1}")
 print(f"test6_2: {test6_2}")
 print(f"test6_3: {test6_3}")
 print(f"test6_4: {test6_4}")
 print(f"test6_5: {test6_5}")
+print(f"test6_1: {test6_6}")
 
-print(f"test7_1: {test7_1}")
 print(f"test7_2: {test7_2}")
 print(f"test7_3: {test7_3}")
 print(f"test7_4: {test7_4}")
 print(f"test7_5: {test7_5}")
+print(f"test7_1: {test7_6}")
+
+print(f"test8_2: {test8_2}")
+print(f"test8_3: {test8_3}")
+print(f"test8_4: {test8_4}")
+print(f"test8_5: {test8_5}")
+print(f"test8_1: {test8_6}")
+
+print(f"test9_2: {test9_2}")
+print(f"test9_3: {test9_3}")
+print(f"test9_4: {test9_4}")
+print(f"test9_5: {test9_5}")
+print(f"test9_1: {test9_6}")
+
 
