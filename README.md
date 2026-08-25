@@ -5,7 +5,7 @@
 <h1 align="center">MAGI<em>k</em></h1>
 
 <p align="center">
-  <strong>Minimizing Active Sensors using a modified Genetic Algorithm with Improved mutation for <em>k</em>-coverage and connectivity in wireless sensor networks.</strong>
+  <strong>M</strong>inimizing <strong>A</strong>ctive Sensors using a modified <strong>G</strong>enetic Algorithm with <strong>I</strong>mproved Mutation for <strong><em>k</em></strong>-Coverage and Connectivity in Wireless Sensor Networks.
 </p>
 
 <p align="center">
@@ -109,7 +109,7 @@ MAGI*k* consistently uses fewer active sensors than GAMA across every tested con
 
 ## Paper
 
-O'Rourke, K. K., & Ammari, H. M. *MAGIk: Minimizing Active Sensors Using Modified Genetic Algorithm With Improved Mutation for k-Coverage and Connectivity.* Presented at ICMU 2025.
+O'Rourke, K. K., & Ammari, H. M. *MAGIk: Minimizing Active Sensors Using Modified Genetic Algorithm With Improved Mutation for k-Coverage and Connectivity.* Presented at ICMU 2025. [[IEEE Xplore]](https://ieeexplore.ieee.org/document/11219136)
 
 Builds on: Zaidi, S. F., Gutama, K. W., & Ammari, H. M. (2023). *GAMA: Genetic Algorithm for k-Coverage and Connectivity with Minimum Sensor Activation in Wireless Sensor Networks.* Proc. 16th Intl. Conf. on Combinatorial Optimization and Applications, pp. 239–251.
 
